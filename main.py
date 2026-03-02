@@ -5,7 +5,7 @@ load_dotenv()
 import json
 import os
 from pydantic import BaseModel
-from ingredient_finder.agent import preprocess_and_invoke_agent
+from recipe_ingest.agent import preprocess_and_invoke_agent
 
 OUTPUT_DIR = "outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)

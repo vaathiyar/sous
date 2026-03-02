@@ -1,11 +1,11 @@
 from enum import StrEnum
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from ingredient_finder.services.youtube import download_audio
-from ingredient_finder.graph.chat_models import model, model_with_tools
-from ingredient_finder.graph.tools import transcription_tools_by_name
+from recipe_ingest.services.youtube import download_audio
+from recipe_ingest.graph.chat_models import model, model_with_tools
+from recipe_ingest.graph.tools import transcription_tools_by_name
 
-from ingredient_finder.graph.nodes.schemas.recipe import ExtractedRecipes
+from shared.schemas.recipe import ExtractedRecipes
 
 
 class NodeNames(StrEnum):
@@ -59,17 +59,18 @@ def extract_recipe_from_transcript(state):
     result = model.with_structured_output(ExtractedRecipes).invoke(
         [
             SystemMessage(
-                content="""You are a recipe extraction engine. Convert raw recipe text into structured data. Rules:
+                content="""You are a recipe extraction engine. Convert raw recipe text into structured data following the provided schema. Rules: 
 
-                1. Extraction only. If the author didn't say it, the field is null or empty. Never infer or enrich with general cooking knowledge.
+                        1. Extract only information the author provides. If the author didn't say it, the field is null or empty. Never infer, enrich, or fill gaps with general cooking knowledge.
 
-                2. Preserve the author's voice. Vague quantities ("a good handful"), casual timing ("cook till the raw smell goes"), sensory descriptions, etc - capture as is. 
-                   High-confidence translation is fine but do not normalize, convert, or rephrase.
+                        2. Rewrite for clarity, not for content. The input may be a spoken transcript or informal blog - rephrase for readability but do not add/remove information beyond what the author stated.
 
-                3. One step = one logical cooking phase as the author presents it. Follow their pacing. Don't split, merge, or reorder steps.
+                        3. The input may be messy (especially audio transcripts): filler words, repetition, corrections, tangents, sponsor segments. Extract the recipe, ignore the noise.
 
-                4. The input may be messy (especially audio transcripts): filler words, repetition, mid-sentence corrections, tangents, sponsor segments. Extract the recipe signal, ignore the noise.
-                """
+                        4. Step boundaries - use the author's own pacing signals in the text:
+                           - A new step begins when the author uses transitional language indicating a previous action is complete ("once...", "now...", "when...is done", etc) or describes a result/checkpoint/sensory cue before moving to the next action.
+                           - Ingredients or actions listed together without any transitional break belong to the same step.
+                           - Do NOT merge actions that span across transitional phrases into one step just because they happen in the same vessel or context."""
             ),
             HumanMessage(
                 content=f"""Extract the recipe from the following raw text.

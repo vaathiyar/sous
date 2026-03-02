@@ -1,7 +1,7 @@
 from langgraph.graph import START, StateGraph, END
-from ingredient_finder.services.youtube import fetch_metadata
-from ingredient_finder.graph.state import RecipeExtractorState
-from ingredient_finder.graph.nodes import (
+from recipe_ingest.services.youtube import fetch_metadata
+from recipe_ingest.graph.state import RecipeExtractorState
+from recipe_ingest.graph.nodes import (
     NodeNames,
     transcribe_recipe_audio,
     extract_recipe_from_transcript,

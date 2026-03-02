@@ -2,7 +2,7 @@ from typing_extensions import TypedDict, Annotated
 from langchain.messages import AnyMessage
 import operator
 
-from ingredient_finder.graph.nodes.schemas.recipe import ExtractedRecipe
+from shared.schemas.recipe import ExtractedRecipe
 
 
 class VideoMetadata(TypedDict):

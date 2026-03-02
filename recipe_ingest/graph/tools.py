@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from ingredient_finder.services.transcription.sarvam import translate_audio
+from recipe_ingest.services.transcription.sarvam import translate_audio
 
 
 @tool
