@@ -14,7 +14,7 @@ class VideoMetadata(TypedDict):
 
 class RecipeDetails(TypedDict):
     recipe_raw_text: str
-    extracted_recipe: ExtractedRecipe
+    recipes: list[ExtractedRecipe]  # one source may yield multiple recipes
     required_ingredients: list[str]
 
 

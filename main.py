@@ -29,9 +29,8 @@ def cmd_ingest(args: argparse.Namespace) -> None:
 
     agent_result = preprocess_and_invoke_agent(args.url)
 
-    out_path = (
-        f"{OUTPUT_DIR}/{agent_result['recipe_details']['extracted_recipes']['id']}.json"
-    )
+    recipe_id = agent_result['recipe_details']['recipes'][0].id
+    out_path = f"{OUTPUT_DIR}/{recipe_id}.json"
     with open(out_path, "w") as f:
         json.dump(agent_result, f, indent=2, default=pydantic_serializer)
 
@@ -50,7 +49,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
     with open(args.recipe_file) as f:
         data = json.load(f)
 
-    recipes = data["recipe_details"]["extracted_recipe"]["extracted_recipes"]
+    recipes = data["recipe_details"]["recipes"]
 
     if len(recipes) == 1:
         recipe_data = recipes[0]

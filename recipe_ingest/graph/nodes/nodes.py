@@ -91,6 +91,6 @@ def extract_recipe_from_transcript(state):
     return {
         "recipe_details": {
             **state["recipe_details"],
-            "extracted_recipe": result,
+            "recipes": result.extracted_recipes,
         }
     }
