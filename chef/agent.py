@@ -24,4 +24,4 @@ agent_builder.add_edge(NodeNames.SUMMARIZE_IF_NEEDED, NodeNames.PROCESS_REQUEST)
 agent_builder.add_edge(NodeNames.HANDLE_DEVIATION, END)
 
 # Compile
-agent = agent_builder.compile()
+chef_agent = agent_builder.compile()

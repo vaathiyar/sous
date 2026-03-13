@@ -29,7 +29,7 @@ def cmd_ingest(args: argparse.Namespace) -> None:
 
     agent_result = preprocess_and_invoke_agent(args.url)
 
-    recipe_id = agent_result['recipe_details']['recipes'][0].id
+    recipe_id = agent_result["recipe_details"]["recipes"][0].id
     out_path = f"{OUTPUT_DIR}/{recipe_id}.json"
     with open(out_path, "w") as f:
         json.dump(agent_result, f, indent=2, default=pydantic_serializer)
@@ -41,7 +41,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
     """Interactive chat session with the chef agent over a pre-ingested recipe."""
     from langchain_core.messages import HumanMessage
 
-    from chef.agent import agent
+    from chef.agent import chef_agent
     from chef.graph.state.enums import StepStatus
     from shared.schemas.recipe import ExtractedRecipe
 
@@ -95,7 +95,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
             HumanMessage(content=user_input)
         ]
 
-        result = agent.invoke(state)
+        result = chef_agent.invoke(state)
 
         # Update state for next turn
         state = result
