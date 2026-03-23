@@ -1,4 +1,6 @@
 from langchain.chat_models import init_chat_model
+
+import shared.config  # noqa: F401 — ensures GOOGLE_API_KEY is in os.environ
 from recipe_ingest.graph.tools import transcription_tools
 
 model = init_chat_model("google_genai:gemini-3-flash-preview", temperature=0)
