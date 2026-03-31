@@ -3,7 +3,10 @@ from pydantic import BaseModel, Field
 
 
 class RecipeMetadata(BaseModel):
-    cuisine: str | None = None
+    cuisine: str | None = Field(
+        None,
+        description="Infer from the dish, ingredients, and context. Single common word only: indian, chinese, italian, mexican, american, thai, japanese, etc. Null if genuinely ambiguous.",
+    )
     region_notes: str | None = Field(
         None,
         description="What makes this version regionally or stylistically distinct, per the author.",
@@ -132,3 +135,88 @@ class ExtractedRecipe(BaseModel):
 
 class ExtractedRecipes(BaseModel):
     extracted_recipes: list[ExtractedRecipe]
+
+
+class RecipeIngredient(BaseModel):
+    """A deduplicated ingredient entry for the full recipe — shopping list view."""
+
+    name: str = Field(
+        description=(
+            "Canonical name as the author uses it. Preserve regional terms. "
+            "Deduplicate across steps — same ingredient appearing in multiple steps is one entry."
+        )
+    )
+    quantity: str | None = Field(
+        None,
+        description=(
+            "Total quantity needed. Aggregate across steps if the same unit is used "
+            "('1 cup' in step 1 + '½ cup' in step 3 = '1½ cups'). "
+            "If units differ or aggregation is ambiguous, use the author's original phrasings joined. "
+            "None if never specified."
+        ),
+    )
+    optional: bool = Field(
+        False,
+        description="True only if the author explicitly marks this ingredient as optional.",
+    )
+    notes: str | None = Field(
+        None,
+        description="Author's note about this ingredient relevant across the whole recipe. None if not stated.",
+    )
+
+
+class PrepItem(BaseModel):
+    task: str = Field(
+        description=(
+            "What the cook needs to do or have ready. Include quantity as stated in the recipe "
+            "(e.g. 'Soak 2 cups basmati rice in cold water', not just 'Soak rice')."
+        )
+    )
+    duration: str | None = Field(
+        None,
+        description="As the author states it ('30 minutes', 'overnight'). None if not stated — never estimate.",
+    )
+    ingredients: list[str] = Field(
+        default_factory=list,
+        description="Ingredient names involved in this prep task.",
+    )
+    notes: str | None = Field(
+        None,
+        description="Author-specific guidance relevant to this task. None if not stated.",
+    )
+
+
+class PreCookBriefing(BaseModel):
+    """
+    Generated from ExtractedRecipe. Surfaces what the cook needs to know and prepare
+    before the cooking session begins. Shown as reading material in the pre-cook screen.
+    """
+
+    summary: str = Field(
+        description=(
+            "2-3 sentences: what the dish is, the overall cooking approach, "
+            "and the one thing the cook must not mess up. Practical, not poetic."
+        )
+    )
+    active_time: str | None = Field(
+        None,
+        description=(
+            "Total hands-on cooking time, aggregated from step durations where explicitly stated. "
+            "Use author's phrasing. None if no durations are stated — never estimate."
+        ),
+    )
+    passive_time: str | None = Field(
+        None,
+        description=(
+            "Total hands-off waiting time (marination, soaking, simmering), "
+            "aggregated from step durations where explicitly stated. "
+            "Use author's phrasing. None if not stated."
+        ),
+    )
+    prep_items: list[PrepItem] = Field(
+        default_factory=list,
+        description=(
+            "Ordered list of things to prepare before step 1. "
+            "Longest-duration items first, instant prep last."
+        ),
+    )

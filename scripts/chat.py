@@ -10,10 +10,12 @@ from shared.db import get_recipe, list_recipes
 
 def cmd_chat(args: argparse.Namespace) -> None:
     """Interactive chat session with the chef agent over a recipe loaded from DB."""
-    recipe = get_recipe(args.recipe_id)
-    if recipe is None:
+    result = get_recipe(args.recipe_id)
+    if result is None:
         print(f"Recipe '{args.recipe_id}' not found in DB. Run 'ingest' first.")
         return
+
+    recipe, precook_briefing = result
 
     print(f"\nLoaded: {recipe.title}")
     print(f"   {len(recipe.steps)} steps")
@@ -21,14 +23,21 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
     state = {
         "base_recipe": recipe,
+        "precook_briefing": precook_briefing,
         "dish_state": {"current_step": 0, "step_status": StepStatus.IN_PROGRESS},
         "deviations": [],
         "messages": [],
         "conversation_summary": "",
-        "routing": {"deviation_flag": None, "deviation_type": None, "new_step": None},
+        "routing": {"deviation_type": None, "new_step": None},
         "context_note": "",
         "response_message": "",
     }
+
+    # Trigger the opening briefing before the input loop
+    state = asyncio.run(chef_agent.ainvoke(state))
+    response = state.get("response_message", "")
+    if response:
+        print(f"\nChef: {response}\n")
 
     while True:
         try:

@@ -2,7 +2,7 @@ from typing_extensions import TypedDict, Annotated
 from langchain.messages import AnyMessage
 import operator
 
-from shared.schemas.recipe import ExtractedRecipe
+from shared.schemas.recipe import ExtractedRecipe, PreCookBriefing, RecipeIngredient
 
 
 class VideoMetadata(TypedDict):
@@ -14,8 +14,9 @@ class VideoMetadata(TypedDict):
 
 class RecipeDetails(TypedDict):
     recipe_raw_text: str
-    recipes: list[ExtractedRecipe]  # one source may yield multiple recipes
-    required_ingredients: list[str]
+    recipes: list[ExtractedRecipe]                      # one source may yield multiple recipes
+    precook_briefings: list[PreCookBriefing]            # parallel to recipes, index i ↔ recipes[i]
+    required_ingredients: list[list[RecipeIngredient]]  # parallel to recipes, index i ↔ recipes[i]
 
 
 class RecipeExtractorState(TypedDict):

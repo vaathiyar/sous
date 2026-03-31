@@ -5,22 +5,23 @@ from recipe_ingest.graph.nodes import (
     NodeNames,
     transcribe_recipe_audio,
     extract_recipe_from_transcript,
+    generate_precook_briefing,
+    compile_required_ingredients,
 )
 
 
 agent_builder = StateGraph(RecipeExtractorState)
 
 agent_builder.add_node(NodeNames.TRANSCRIBE_RECIPE_AUDIO, transcribe_recipe_audio)
-agent_builder.add_node(
-    NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT, extract_recipe_from_transcript
-)
+agent_builder.add_node(NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT, extract_recipe_from_transcript)
+agent_builder.add_node(NodeNames.GENERATE_PRECOOK_BRIEFING, generate_precook_briefing)
+agent_builder.add_node(NodeNames.COMPILE_REQUIRED_INGREDIENTS, compile_required_ingredients)
 
 agent_builder.add_edge(START, NodeNames.TRANSCRIBE_RECIPE_AUDIO)
-agent_builder.add_edge(
-    NodeNames.TRANSCRIBE_RECIPE_AUDIO, NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT
-)
-
-agent_builder.add_edge(NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT, END)
+agent_builder.add_edge(NodeNames.TRANSCRIBE_RECIPE_AUDIO, NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT)
+agent_builder.add_edge(NodeNames.EXTRACT_RECIPE_FROM_TRANSCRIPT, NodeNames.GENERATE_PRECOOK_BRIEFING)
+agent_builder.add_edge(NodeNames.GENERATE_PRECOOK_BRIEFING, NodeNames.COMPILE_REQUIRED_INGREDIENTS)
+agent_builder.add_edge(NodeNames.COMPILE_REQUIRED_INGREDIENTS, END)
 
 agent = agent_builder.compile()
 
