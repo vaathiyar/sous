@@ -2,6 +2,7 @@ from enum import StrEnum
 
 
 class NodeNames(StrEnum):
+    BRIEFING = "briefing"
     SUMMARIZE_IF_NEEDED = "summarize_if_needed"
     EXTRACT_AND_ROUTE = "extract_and_route"
     SIMPLE_QUERY_RESPONSE = "simple_query_response"

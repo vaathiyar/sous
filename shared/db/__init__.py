@@ -1,5 +1,5 @@
 from shared.db.engine import create_tables, get_engine, get_session
-from shared.db.recipes import get_recipe, list_recipes, upsert_recipe
+from shared.db.recipes import get_recipe, list_recipes, upsert_recipe, RecipeData
 
 __all__ = [
     "create_tables",
@@ -8,4 +8,5 @@ __all__ = [
     "upsert_recipe",
     "list_recipes",
     "get_recipe",
+    "RecipeData",
 ]

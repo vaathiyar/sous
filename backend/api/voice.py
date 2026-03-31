@@ -41,8 +41,7 @@ async def create_token(req: TokenRequest) -> TokenResponse:
       4. The frontend uses that token to join the same room via WebRTC.
       5. The agent worker and the user are now in the same room, exchanging audio.
     """
-    recipe = get_recipe(req.recipe_id)
-    if recipe is None:
+    if get_recipe(req.recipe_id) is None:
         raise HTTPException(status_code=404, detail=f"Recipe '{req.recipe_id}' not found")
 
     room_name = f"sous-{uuid.uuid4().hex[:8]}"

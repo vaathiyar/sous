@@ -2,13 +2,14 @@ from typing_extensions import TypedDict, Annotated
 from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage
 
-from shared.schemas.recipe import ExtractedRecipe
+from shared.schemas.recipe import ExtractedRecipe, PreCookBriefing
 from chef.graph.state.types import DishState, Deviation, RoutingContext
 
 
 class ChefState(TypedDict):
     # Immutable
     base_recipe: ExtractedRecipe
+    precook_briefing: PreCookBriefing | None
 
     # Core tracking
     dish_state: DishState

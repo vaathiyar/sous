@@ -23,7 +23,7 @@ Step status: {step_status}
 {deviations_section}
 
 {conversation_summary_section}
-
+{briefing_section}
 ## Base Recipe
 {base_recipe}
 
@@ -150,6 +150,42 @@ Deviation type: {deviation_type}
 ## Voice Rules
 Keep it brief. No markdown, no lists. The user wants confirmation so they can keep cooking.
 """
+
+BRIEFING_INTRO_PROMPT = """\
+You are a sous chef about to guide a home cook through {recipe_title}.
+This is your opening message — cooking has not started yet.
+
+{summary}
+
+In 2-3 spoken sentences: introduce what you're making today, then ask if they have \
+everything they need or any dietary restrictions before you start.
+
+Voice rules: no markdown, no lists, no bold, no bullets. Natural spoken speech only.
+"""
+
+BRIEFING_ROUTE_PROMPT = """\
+You are classifying a user message during the pre-cook briefing phase of cooking {recipe_title}.
+{summary_section}
+
+Classify as exactly one of:
+- BriefingDeviation: user mentions a missing ingredient, dietary restriction, allergy, substitution \
+they plan to make, or confirms a previously proposed deviation
+  deviation_type: SUBSTITUTION (ingredient swap, allergy, dietary restriction) or \
+AMENDMENT (technique or quantity change)
+  is_confirmation: true ONLY when the user is confirming a change that was already proposed \
+earlier in the conversation
+- BriefingQuery: user has a question about the recipe, ingredients, or technique
+- BriefingReady: user signals they are ready to start cooking
+
+Examples:
+- "I don't have coconut milk" → BriefingDeviation / SUBSTITUTION / is_confirmation=false
+- "I'm vegetarian, no meat" → BriefingDeviation / SUBSTITUTION / is_confirmation=false
+- "yes go ahead" (after a substitution was proposed) → BriefingDeviation / is_confirmation=true
+- "how long does this take?" → BriefingQuery
+- "what is seeraga samba rice?" → BriefingQuery
+- "ready", "let's go", "let's start", "start cooking", "I'm ready", "all good" → BriefingReady
+"""
+
 
 SUMMARIZATION_PROMPT = """\
 Summarize the following cooking session conversation. This summary will be used as context \

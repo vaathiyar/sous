@@ -6,11 +6,12 @@ from livekit.agents import llm, APIConnectOptions, DEFAULT_API_CONNECT_OPTIONS
 from chef.agent import chef_agent
 from chef.graph.nodes.node_names import NodeNames
 from chef.graph.state.enums import StepStatus
-from shared.schemas.recipe import ExtractedRecipe
+from shared.schemas.recipe import ExtractedRecipe, PreCookBriefing
 
 
 # Nodes that produce spoken output — their tokens are streamed to TTS
 SPEECH_NODES = {
+    NodeNames.BRIEFING,
     NodeNames.SIMPLE_QUERY_RESPONSE,
     NodeNames.STEP_CHANGE_RESPONSE,
     NodeNames.NEW_PROPOSAL,
@@ -106,11 +107,11 @@ class ChefLLM(llm.LLM):
     across turns for the lifetime of the session (recipe progress, deviations, etc.).
     """
 
-    def __init__(self, recipe: ExtractedRecipe):
+    def __init__(self, recipe: ExtractedRecipe, precook_briefing: PreCookBriefing | None = None):
         super().__init__()
-        # Initial ChefState — mirrors what main.py sets up for the CLI chat mode.
         self._state = {
             "base_recipe": recipe,
+            "precook_briefing": precook_briefing,
             "dish_state": {"current_step": 0, "step_status": StepStatus.IN_PROGRESS},
             "deviations": [],
             "messages": [],
@@ -119,6 +120,14 @@ class ChefLLM(llm.LLM):
             "context_note": "",
             "response_message": "",
         }
+
+    async def start_intro(self) -> str:
+        """Run the briefing node's first turn (no user input) to generate the opening message.
+        Updates internal state so subsequent turns have full conversation context.
+        """
+        result = await chef_agent.ainvoke(self._state)
+        self._state = result
+        return result.get("response_message", "")
 
     def chat(
         self,

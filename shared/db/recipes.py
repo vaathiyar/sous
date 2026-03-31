@@ -1,10 +1,22 @@
 import uuid
 
+from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import insert
 
 from shared.db.engine import get_session
 from shared.db.models import RecipeRow
 from shared.schemas.recipe import ExtractedRecipe, PreCookBriefing, RecipeIngredient
+
+
+class RecipeData(BaseModel):
+    id: str
+    slug: str
+    title: str
+    cuisine: str | None
+    source_url: str | None
+    recipe: ExtractedRecipe
+    precook_briefing: PreCookBriefing | None
+    ingredients: list[RecipeIngredient] | None
 
 
 def upsert_recipe(
@@ -71,15 +83,22 @@ def _fetch_row(session, recipe_id: str):
         return session.query(RecipeRow).filter(RecipeRow.slug == recipe_id).first()
 
 
-def get_recipe(recipe_id: str) -> tuple[ExtractedRecipe, PreCookBriefing | None] | None:
-    """Fetch recipe and precook briefing in one query. Returns None if not found."""
+def get_recipe(recipe_id: str) -> RecipeData | None:
+    """Fetch full recipe data in one query. Returns None if not found."""
     session = get_session()
     try:
         row = _fetch_row(session, recipe_id)
         if row is None:
             return None
-        recipe = ExtractedRecipe(**row.full_recipe)
-        briefing = PreCookBriefing(**row.precook_data) if row.precook_data else None
-        return recipe, briefing
+        return RecipeData(
+            id=str(row.id),
+            slug=row.slug,
+            title=row.title,
+            cuisine=row.cuisine,
+            source_url=row.source_url,
+            recipe=ExtractedRecipe(**row.full_recipe),
+            precook_briefing=PreCookBriefing(**row.precook_data) if row.precook_data else None,
+            ingredients=[RecipeIngredient(**i) for i in row.ingredients_data] if row.ingredients_data else None,
+        )
     finally:
         session.close()

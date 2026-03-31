@@ -20,16 +20,18 @@ async def entrypoint(ctx: JobContext):
         logger.error("No recipe_id in job metadata")
         return
 
-    recipe = get_recipe(recipe_id)
-    if recipe is None:
+    result = get_recipe(recipe_id)
+    if result is None:
         logger.error(f"Recipe '{recipe_id}' not found in DB")
         return
 
-    logger.info(f"Starting session for recipe: {recipe.title}")
+    logger.info(f"Starting session for recipe: {result.title} (briefing: {'yes' if result.precook_briefing else 'none'})")
 
     creds = {}
     if settings.google_credentials_file_path:
         creds["credentials_file"] = settings.google_credentials_file_path
+
+    chef_llm = ChefLLM(recipe=result.recipe, precook_briefing=result.precook_briefing)
 
     # AgentSession is the LiveKit pipeline orchestrator.
     # It wires together the four stages of a voice agent:
@@ -43,7 +45,7 @@ async def entrypoint(ctx: JobContext):
         stt=google.STT(
             model=settings.stt_model, location=settings.stt_location, **creds
         ),
-        llm=ChefLLM(recipe=recipe),
+        llm=chef_llm,
         tts=google.TTS(model_name="chirp_3", voice_name=settings.tts_voice, **creds),
     )
 
@@ -58,6 +60,11 @@ async def entrypoint(ctx: JobContext):
     # processing audio. It handles room connection internally — no ctx.connect()
     # needed when using AgentSession.
     await session.start(room=ctx.room, agent=agent)
+
+    # Generate and speak the opening briefing before waiting for the user.
+    intro_text = await chef_llm.start_intro()
+    if intro_text:
+        await session.say(intro_text)
 
 
 if __name__ == "__main__":

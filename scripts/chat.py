@@ -15,15 +15,13 @@ def cmd_chat(args: argparse.Namespace) -> None:
         print(f"Recipe '{args.recipe_id}' not found in DB. Run 'ingest' first.")
         return
 
-    recipe, precook_briefing = result
-
-    print(f"\nLoaded: {recipe.title}")
-    print(f"   {len(recipe.steps)} steps")
+    print(f"\nLoaded: {result.title}")
+    print(f"   {len(result.recipe.steps)} steps")
     print(f"\nType your messages below. Ctrl+C or 'quit' to exit.\n")
 
     state = {
-        "base_recipe": recipe,
-        "precook_briefing": precook_briefing,
+        "base_recipe": result.recipe,
+        "precook_briefing": result.precook_briefing,
         "dish_state": {"current_step": 0, "step_status": StepStatus.IN_PROGRESS},
         "deviations": [],
         "messages": [],
