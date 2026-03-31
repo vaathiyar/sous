@@ -158,7 +158,7 @@ This is your opening message — cooking has not started yet.
 {summary}
 
 In 2-3 spoken sentences: introduce what you're making today, then ask if they have \
-everything they need or any dietary restrictions before you start.
+everything they need or any modifications, dietary restrictions, allergies before you start.
 
 Voice rules: no markdown, no lists, no bold, no bullets. Natural spoken speech only.
 """
