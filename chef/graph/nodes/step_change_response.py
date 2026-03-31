@@ -4,7 +4,7 @@ import logging
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from chef.graph.state import ChefState
-from chef.graph.chat_models import chef_model
+from chef.graph.chat_models import response_model
 from chef.graph.prompts import STEP_CHANGE_PROMPT
 from chef.graph.utils import format_deviations
 
@@ -60,7 +60,7 @@ async def step_change_response(state: ChefState) -> dict:
         messages = [SystemMessage(content=build_system_prompt({**state, "dish_state": dish_state}))] + state["messages"]
 
     response_text = ""
-    async for chunk in chef_model.astream(messages):
+    async for chunk in response_model.astream(messages):
         c = chunk.content
         response_text += c if isinstance(c, str) else "".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in c)
 

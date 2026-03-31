@@ -3,7 +3,7 @@ import logging
 from langchain_core.messages import AIMessage, SystemMessage
 
 from chef.graph.state import ChefState
-from chef.graph.chat_models import chef_model
+from chef.graph.chat_models import reasoning_model
 from chef.graph.prompts import NEW_DEVIATION_PROMPT
 from chef.graph.utils import format_deviations
 
@@ -27,7 +27,7 @@ async def new_proposal(state: ChefState) -> dict:
     )
 
     response_text = ""
-    async for chunk in chef_model.astream(
+    async for chunk in reasoning_model.astream(
         [SystemMessage(content=prompt)] + state["messages"]
     ):
         c = chunk.content

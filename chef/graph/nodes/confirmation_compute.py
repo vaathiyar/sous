@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage
 from pydantic import BaseModel
 
 from chef.graph.state import ChefState, Deviation
-from chef.graph.chat_models import chef_model
+from chef.graph.chat_models import reasoning_model
 from chef.graph.prompts import CONFIRM_DEVIATION_PROMPT
 from chef.graph.utils import format_deviations
 
@@ -33,7 +33,7 @@ async def confirmation_compute(state: ChefState) -> dict:
         base_recipe=recipe.model_dump_json(indent=2),
     )
 
-    response: DeviationNodeOutput = await chef_model.with_structured_output(
+    response: DeviationNodeOutput = await reasoning_model.with_structured_output(
         DeviationNodeOutput
     ).ainvoke([SystemMessage(content=prompt)] + state["messages"])
 

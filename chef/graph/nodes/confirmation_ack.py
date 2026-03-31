@@ -3,7 +3,7 @@ import logging
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from chef.graph.state import ChefState
-from chef.graph.chat_models import chef_model
+from chef.graph.chat_models import response_model
 from chef.graph.prompts import CONFIRMATION_ACK_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ async def confirmation_ack(state: ChefState) -> dict:
             deviation_description=deviation_description
         )
         response_text = ""
-        async for chunk in chef_model.astream([HumanMessage(content=prompt)]):
+        async for chunk in response_model.astream([HumanMessage(content=prompt)]):
             c = chunk.content
             response_text += c if isinstance(c, str) else "".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in c)
 
