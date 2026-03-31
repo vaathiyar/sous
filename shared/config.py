@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     sarvam_api_key: str = ""
     artifacts_dir: str = "artifacts"
+    sql_database_url: str = ""
 
     # Voice pipeline — swap model/voice here without touching agent.py
     stt_model: str = "latest_long"

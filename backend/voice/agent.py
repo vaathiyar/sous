@@ -6,29 +6,25 @@ from livekit.plugins import google, silero
 
 from backend.config import settings
 from backend.voice.chef_llm import ChefLLM
-from shared.schemas.recipe import ExtractedRecipe
+from shared.db import get_recipe
 
 logger = logging.getLogger(__name__)
 
 
-def load_recipe(recipe_file: str) -> ExtractedRecipe:
-    with open(recipe_file) as f:
-        data = json.load(f)
-    recipes = data["recipe_details"]["recipes"]
-    return ExtractedRecipe(**recipes[0])
-
-
 async def entrypoint(ctx: JobContext):
     # ctx.job.metadata is the JSON string passed in the dispatch request.
-    # This is how the API layer tells the agent which recipe to load —
-    # analogous to passing a request body to a background worker.
+    # This is how the API layer tells the agent which recipe to load.
     metadata = json.loads(ctx.job.metadata or "{}")
-    recipe_file = metadata.get("recipe_file")
-    if not recipe_file:
-        logger.error("No recipe_file in job metadata")
+    recipe_id = metadata.get("recipe_id")
+    if not recipe_id:
+        logger.error("No recipe_id in job metadata")
         return
 
-    recipe = load_recipe(recipe_file)
+    recipe = get_recipe(recipe_id)
+    if recipe is None:
+        logger.error(f"Recipe '{recipe_id}' not found in DB")
+        return
+
     logger.info(f"Starting session for recipe: {recipe.title}")
 
     creds = {}
@@ -44,7 +40,9 @@ async def entrypoint(ctx: JobContext):
     # Each stage is a plugin; swap any one out without touching the others.
     session = AgentSession(
         vad=silero.VAD.load(),
-        stt=google.STT(model=settings.stt_model, location=settings.stt_location, **creds),
+        stt=google.STT(
+            model=settings.stt_model, location=settings.stt_location, **creds
+        ),
         llm=ChefLLM(recipe=recipe),
         tts=google.TTS(model_name="chirp_3", voice_name=settings.tts_voice, **creds),
     )

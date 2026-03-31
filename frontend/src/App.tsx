@@ -3,8 +3,9 @@ import VoiceSession from "./VoiceSession";
 
 interface Recipe {
   id: string;
+  slug: string;
   title: string;
-  file: string;
+  cuisine: string | null;
 }
 
 interface SessionInfo {
@@ -35,7 +36,7 @@ export default function App() {
       const res = await fetch("/api/voice/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipe_file: selectedRecipe.file }),
+        body: JSON.stringify({ recipe_id: selectedRecipe.id }),
       });
       if (!res.ok) throw new Error(await res.text());
       setSession(await res.json());
@@ -76,15 +77,15 @@ export default function App() {
           <div className="select-wrap">
             <select
               className="recipe-select"
-              value={selectedRecipe?.file ?? ""}
+              value={selectedRecipe?.id ?? ""}
               onChange={(e) => {
-                const r = recipes.find((r) => r.file === e.target.value) ?? null;
+                const r = recipes.find((r) => r.id === e.target.value) ?? null;
                 setSelectedRecipe(r);
               }}
             >
               <option value="">— pick a recipe —</option>
               {recipes.map((r) => (
-                <option key={r.id} value={r.file}>
+                <option key={r.id} value={r.id}>
                   {r.title}
                 </option>
               ))}
