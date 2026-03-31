@@ -42,7 +42,9 @@ class ChefLLMStream(llm.LLMStream):
         tools: list,
         conn_options: APIConnectOptions,
     ):
-        super().__init__(chef_llm, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options)
+        super().__init__(
+            chef_llm, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options
+        )
         self._chef_llm = chef_llm
 
     async def _run(self) -> None:
@@ -55,9 +57,9 @@ class ChefLLMStream(llm.LLMStream):
         if not user_text:
             return
 
-        self._chef_llm._state["messages"] = (
-            self._chef_llm._state.get("messages", []) + [HumanMessage(content=user_text)]
-        )
+        self._chef_llm._state["messages"] = self._chef_llm._state.get(
+            "messages", []
+        ) + [HumanMessage(content=user_text)]
 
         async for chunk_type, data in chef_agent.astream(
             self._chef_llm._state, stream_mode=["values", "messages"]
@@ -73,15 +75,25 @@ class ChefLLMStream(llm.LLMStream):
                     and node in SPEECH_NODES
                     and msg.content
                 ):
-                    self._event_ch.send_nowait(
-                        llm.ChatChunk(
-                            id=self._chef_llm.label,
-                            delta=llm.ChoiceDelta(
-                                role="assistant",
-                                content=msg.content,
-                            ),
+                    # ADR: This patch introducing some tight coupling between model provider (gemini) and livekit.
+                    # Gemini returns a list of content parts, but Claude/OpenAI expect a string.
+                    # We'll be just using gemini for now, so not putting much effort into this fix.
+                    # Will probably create a proper interface to avoid coupling later. Will fix it when the problem arises.
+                    content = msg.content
+                    if isinstance(content, list):
+                        content = "".join(
+                            p.get("text", "") for p in content if isinstance(p, dict)
                         )
-                    )
+                    if content:
+                        self._event_ch.send_nowait(
+                            llm.ChatChunk(
+                                id=self._chef_llm.label,
+                                delta=llm.ChoiceDelta(
+                                    role="assistant",
+                                    content=content,
+                                ),
+                            )
+                        )
 
 
 class ChefLLM(llm.LLM):
@@ -117,4 +129,6 @@ class ChefLLM(llm.LLM):
         **_ignored,  # drop tool_choice, parallel_tool_calls, etc. — we don't use them
     ) -> ChefLLMStream:
         # Called by the framework once per user turn.
-        return ChefLLMStream(self, chat_ctx=chat_ctx, tools=tools or [], conn_options=conn_options)
+        return ChefLLMStream(
+            self, chat_ctx=chat_ctx, tools=tools or [], conn_options=conn_options
+        )
