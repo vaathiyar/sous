@@ -11,6 +11,13 @@ from shared.db import get_recipe
 logger = logging.getLogger(__name__)
 
 
+class SousChefAgent(Agent):
+    """Triggers the opening briefing automatically when the session starts."""
+
+    async def on_enter(self) -> None:
+        await self.session.generate_reply()
+
+
 async def entrypoint(ctx: JobContext):
     # ctx.job.metadata is the JSON string passed in the dispatch request.
     # This is how the API layer tells the agent which recipe to load.
@@ -25,7 +32,9 @@ async def entrypoint(ctx: JobContext):
         logger.error(f"Recipe '{recipe_id}' not found in DB")
         return
 
-    logger.info(f"Starting session for recipe: {result.title} (briefing: {'yes' if result.precook_briefing else 'none'})")
+    logger.info(
+        f"Starting session for recipe: {result.title} (briefing: {'yes' if result.precook_briefing else 'none'})"
+    )
 
     creds = {}
     if settings.google_credentials_file_path:
@@ -49,22 +58,14 @@ async def entrypoint(ctx: JobContext):
         tts=google.TTS(model_name="chirp_3", voice_name=settings.tts_voice, **creds),
     )
 
-    # Agent holds the persona / instructions passed to the LLM system prompt.
-    # Our ChefLLM manages its own state and largely ignores this, but the
-    # Agent object is required by the framework to start a session.
-    agent = Agent(
-        instructions="You are a helpful sous chef guiding the user through a recipe step by step."
+    # SousChefAgent.on_enter() fires automatically after session.start() and
+    # calls generate_reply() with no user input, triggering the briefing intro.
+    await session.start(
+        room=ctx.room,
+        agent=SousChefAgent(
+            instructions="You are a helpful sous chef guiding the user through a recipe step by step."
+        ),
     )
-
-    # session.start() connects the agent to the LiveKit room and begins
-    # processing audio. It handles room connection internally — no ctx.connect()
-    # needed when using AgentSession.
-    await session.start(room=ctx.room, agent=agent)
-
-    # Generate and speak the opening briefing before waiting for the user.
-    intro_text = await chef_llm.start_intro()
-    if intro_text:
-        await session.say(intro_text)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,9 @@ from chef.graph.state.enums import StepStatus
 from shared.schemas.recipe import ExtractedRecipe, PreCookBriefing
 
 
-# Nodes that produce spoken output — their tokens are streamed to TTS
+# Nodes that produce spoken output — their tokens are streamed to TTS.
+# BRIEFING is intentionally excluded: its classification path emits structured
+# output JSON that must not reach TTS. The intro is handled in _run() via ainvoke.
 SPEECH_NODES = {
     NodeNames.SIMPLE_QUERY_RESPONSE,
     NodeNames.STEP_CHANGE_RESPONSE,
@@ -20,18 +22,18 @@ SPEECH_NODES = {
 
 class ChefLLMStream(llm.LLMStream):
     """
-    Handles a single LLM turn — one user utterance → one agent response.
+    Handles a single LLM turn — one agent response.
 
-    LiveKit's STT transcribes the user's speech, then calls ChefLLM.chat()
-    which returns one of these stream objects. The framework then calls _run()
-    and reads ChatChunk events off the internal channel to feed into TTS.
+    LiveKit calls chat() → _run() for every turn, including the proactive
+    intro triggered by SousChefAgent.on_enter() (no user input) and all
+    subsequent user turns.
 
     astream with stream_mode=["values","messages"] yields two event types:
-      ("values", full_state)         — emitted after each node completes
+      ("values", full_state)          — emitted after each node completes
       ("messages", (chunk, metadata)) — emitted per token during a node's LLM call
 
-    We push tokens to _event_ch only from SPEECH_NODES so TTS starts on the
-    first token of the response rather than waiting for the full graph to finish.
+    Tokens are pushed to _event_ch only from SPEECH_NODES so TTS starts on the
+    first token rather than waiting for the full graph to finish.
     State is persisted via "values" events, making interruptions safe.
     """
 
@@ -54,6 +56,22 @@ class ChefLLMStream(llm.LLMStream):
                 user_text = item.text_content
                 break
 
+        # Intro turn: on_enter() triggers generate_reply() with no user input.
+        # Run ainvoke() so the briefing node generates the opening message,
+        # then push the full response as a single chunk to TTS.
+        if not user_text and not self._chef_llm._state.get("messages"):
+            result = await chef_agent.ainvoke(self._chef_llm._state)
+            self._chef_llm._state = result
+            intro_text = result.get("response_message", "")
+            if intro_text:
+                self._event_ch.send_nowait(
+                    llm.ChatChunk(
+                        id=self._chef_llm.label,
+                        delta=llm.ChoiceDelta(role="assistant", content=intro_text),
+                    )
+                )
+            return
+
         if not user_text:
             return
 
@@ -75,10 +93,8 @@ class ChefLLMStream(llm.LLMStream):
                     and node in SPEECH_NODES
                     and msg.content
                 ):
-                    # ADR: This patch introducing some tight coupling between model provider (gemini) and livekit.
-                    # Gemini returns a list of content parts, but Claude/OpenAI expect a string.
-                    # We'll be just using gemini for now, so not putting much effort into this fix.
-                    # Will probably create a proper interface to avoid coupling later. Will fix it when the problem arises.
+                    # ADR: Gemini returns a list of content parts; Claude/OpenAI expect a string.
+                    # Keeping this as-is until we need to support multiple providers.
                     content = msg.content
                     if isinstance(content, list):
                         content = "".join(
@@ -120,23 +136,14 @@ class ChefLLM(llm.LLM):
             "response_message": "",
         }
 
-    async def start_intro(self) -> str:
-        """Run the briefing node's first turn (no user input) to generate the opening message.
-        Updates internal state so subsequent turns have full conversation context.
-        """
-        result = await chef_agent.ainvoke(self._state)
-        self._state = result
-        return result.get("response_message", "")
-
     def chat(
         self,
         *,
         chat_ctx: llm.ChatContext,
         tools: list | None = None,
         conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
-        **_ignored,  # drop tool_choice, parallel_tool_calls, etc. — we don't use them
+        **_ignored,
     ) -> ChefLLMStream:
-        # Called by the framework once per user turn.
         return ChefLLMStream(
             self, chat_ctx=chat_ctx, tools=tools or [], conn_options=conn_options
         )
