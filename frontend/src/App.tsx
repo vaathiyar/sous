@@ -27,12 +27,6 @@ export default function App() {
     if (!selected) return;
     setSessionLoading(true);
     try {
-      // Request mic permission first, while still inside the user gesture.
-      // Mobile browsers (Firefox, Safari) silently block permission requests
-      // that happen after an async gap — this primes it before the API call.
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((t) => t.stop());
-
       const res = await fetch(`${API_BASE}/api/voice/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
