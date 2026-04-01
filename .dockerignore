@@ -1,0 +1,13 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+.vscode
+artifacts/
+frontend/
+recipe_ingest/
+scripts/
+tests/
