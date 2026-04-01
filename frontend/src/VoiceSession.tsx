@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -44,6 +45,11 @@ const STATE_LABELS: Record<string, string> = {
 function AgentView({ recipeTitle, onEnd }: { recipeTitle: string; onEnd: () => void }) {
   const { state, audioTrack } = useVoiceAssistant();
   const { isMicrophoneEnabled, localParticipant } = useLocalParticipant();
+  const [agentHasSpoken, setAgentHasSpoken] = useState(false);
+
+  useEffect(() => {
+    if (state === "speaking") setAgentHasSpoken(true);
+  }, [state]);
 
   const toggleMic = () => {
     localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
@@ -76,7 +82,8 @@ function AgentView({ recipeTitle, onEnd }: { recipeTitle: string; onEnd: () => v
           />
         </div>
         <p className="agent-hint">
-          {state === "speaking" ? "Chef is talking…" :
+          {!agentHasSpoken ? "Waiting for chef…" :
+           state === "speaking" ? "Chef is talking…" :
            state === "listening" ? "Go ahead, I'm listening" :
            "Waiting for chef…"}
         </p>
