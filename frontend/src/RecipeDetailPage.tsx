@@ -207,22 +207,6 @@ export default function RecipeDetailPage({
               {/* Summary quote */}
               <blockquote className="briefing-quote">
                 <p className="briefing-text">{data.precook_briefing.summary}</p>
-                {(data.precook_briefing.active_time || data.precook_briefing.passive_time) && (
-                  <div className="briefing-times">
-                    {data.precook_briefing.active_time && (
-                      <span className="briefing-time">
-                        <ClockIcon />
-                        <b>Active</b> {data.precook_briefing.active_time}
-                      </span>
-                    )}
-                    {data.precook_briefing.passive_time && (
-                      <span className="briefing-time">
-                        <ClockIcon />
-                        <b>Rest</b> {data.precook_briefing.passive_time}
-                      </span>
-                    )}
-                  </div>
-                )}
               </blockquote>
 
               {data.precook_briefing.prep_items.length > 0 && (
