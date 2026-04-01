@@ -19,6 +19,15 @@ async def list_recipes_endpoint() -> list[dict]:
     return list_recipes()
 
 
+@router.get("/recipes/{recipe_id}")
+async def get_recipe_detail(recipe_id: str) -> dict:
+    """Full recipe data — ingredients, precook briefing, and source URL for the detail page."""
+    data = get_recipe(recipe_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"Recipe '{recipe_id}' not found")
+    return data.model_dump()
+
+
 class TokenRequest(BaseModel):
     recipe_id: str
 
