@@ -1,11 +1,12 @@
-import type { Recipe } from "./types";
+import '@/styles/RecipeListPage.css';
+import type { Recipe } from '@/types';
 
-interface Props {
+interface RecipeListPageProps {
   recipes: Recipe[];
   onSelect: (recipe: Recipe) => void;
 }
 
-export default function RecipeListPage({ recipes, onSelect }: Props) {
+export default function RecipeListPage({ recipes, onSelect }: RecipeListPageProps) {
   return (
     <div className="list-page">
       <header className="list-header">
@@ -21,7 +22,7 @@ export default function RecipeListPage({ recipes, onSelect }: Props) {
           </h1>
           {recipes.length > 0 && (
             <p className="list-subheading">
-              {recipes.length} recipe{recipes.length !== 1 ? "s" : ""} in your kitchen
+              {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} in your kitchen
             </p>
           )}
         </div>
@@ -48,7 +49,7 @@ export default function RecipeListPage({ recipes, onSelect }: Props) {
                 >
                   <span className="menu-item-name">{recipe.title}</span>
                   <span className="menu-item-rule" aria-hidden="true" />
-                  <span className="menu-item-cuisine">{recipe.cuisine ?? "—"}</span>
+                  <span className="menu-item-cuisine">{recipe.cuisine ?? '—'}</span>
                 </button>
               </li>
             ))}

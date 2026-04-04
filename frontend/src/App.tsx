@@ -1,70 +1,53 @@
-import { useState, useEffect } from "react";
-import RecipeListPage from "./RecipeListPage";
-import RecipeDetailPage from "./RecipeDetailPage";
-import VoiceSession from "./VoiceSession";
-import type { Recipe, SessionInfo } from "./types";
+import { useState } from 'react';
+import RecipeListPage from '@/pages/RecipeListPage';
+import RecipeDetailPage from '@/pages/RecipeDetailPage';
+import VoiceSession from '@/pages/VoiceSession/VoiceSession';
+import { useRecipes } from '@/hooks/useRecipes';
+import { useStartSession } from '@/hooks/useStartSession';
+import type { Recipe, SessionInfo } from '@/types';
 
-const API_BASE = import.meta.env.VITE_BACKEND_API_URL;
-if (!API_BASE) throw new Error("VITE_BACKEND_API_URL is not set");
-
-type View = "list" | "detail" | "session";
+type View = 'list' | 'detail' | 'session';
 
 export default function App() {
-  const [view, setView] = useState<View>("list");
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [view, setView] = useState<View>('list');
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [session, setSession] = useState<SessionInfo | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(false);
 
-  useEffect(() => {
-    fetch(`${API_BASE}/api/voice/recipes`)
-      .then((r) => r.json())
-      .then(setRecipes)
-      .catch(console.error);
-  }, []);
+  const { recipes } = useRecipes();
+  const { start: startSession, loading: sessionLoading, error: sessionError } = useStartSession();
 
-  async function handleStartCooking() {
+  const handleStartCooking = async () => {
     if (!selected) return;
-    setSessionLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/voice/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipe_id: selected.id }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data: SessionInfo = await res.json();
+    const data = await startSession(selected.id);
+    if (data) {
       setSession(data);
-      setView("session");
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSessionLoading(false);
+      setView('session');
     }
-  }
+  };
 
-  if (view === "session" && session && selected) {
+  if (view === 'session' && session && selected) {
     return (
       <VoiceSession
         token={session.token}
-        serverUrl={session.livekit_url}
+        serverUrl={session.livekitUrl}
         recipeTitle={selected.title}
         onEnd={() => {
           setSession(null);
-          setView("detail");
+          setView('detail');
         }}
       />
     );
   }
 
-  if (view === "detail" && selected) {
+  if (view === 'detail' && selected) {
     return (
       <RecipeDetailPage
         recipeId={selected.id}
         recipeTitle={selected.title}
-        onBack={() => setView("list")}
+        onBack={() => setView('list')}
         onStartCooking={handleStartCooking}
         startLoading={sessionLoading}
+        startError={sessionError}
       />
     );
   }
@@ -74,7 +57,7 @@ export default function App() {
       recipes={recipes}
       onSelect={(recipe) => {
         setSelected(recipe);
-        setView("detail");
+        setView('detail');
       }}
     />
   );

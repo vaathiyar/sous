@@ -1,0 +1,131 @@
+/* ── Reset ──────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+/* ── Design tokens ──────────────────────────── */
+
+:root {
+  /* Pantry palette — warm cream + brick */
+  --bg:        #faf8f3;
+  --surface:   #f3efe6;
+  --surface-2: #eae3d6;
+  --surface-3: #dfd8c8;
+  --border:    #d4cdbf;
+  --border-2:  #bfb8a8;
+
+  /* Ink — warm near-black spectrum */
+  --ink:   #1c1a16;
+  --ink-2: #5c5548;
+  --ink-3: #9c9285;
+
+  /* Brick red — fire, heat, the accent */
+  --fire:      #bf3a1f;
+  --fire-dk:   #a33319;
+  --fire-dim:  rgba(191, 58, 31, 0.07);
+  --fire-mid:  rgba(191, 58, 31, 0.18);
+
+  /* Herb green — success */
+  --herb:     #2e7a50;
+  --herb-dim: rgba(46, 122, 80, 0.10);
+
+  /* Radii */
+  --r-sm: 4px;
+  --r:    8px;
+  --r-lg: 12px;
+
+  /* Type */
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-body:    'Outfit', system-ui, -apple-system, sans-serif;
+
+  /* Session / dark ambient theme */
+  --session-bg:      #0d0c0a;
+  --session-surface: #1e1c18;
+  --session-border:  #2c2a24;
+  --session-ink:     #f0ebe3;
+  --session-ink-2:   #8e887f;
+  --session-green:   #4ade80;
+  --session-red:     #f87171;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+  font-size: 16px;
+}
+
+button { font-family: var(--font-body); cursor: pointer; }
+ul, ol { list-style: none; }
+
+/* ── Shared atoms ───────────────────────────── */
+
+/* The wordmark — italic serif, the signature of the app */
+.wordmark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.35rem;
+  color: var(--fire);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Cuisine tag — understated, uppercase */
+.cuisine-tag {
+  display: inline-block;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fire);
+  padding: 3px 9px;
+  border: 1px solid var(--fire-mid);
+  border-radius: var(--r-sm);
+  background: var(--fire-dim);
+}
+
+/* Skeleton shimmer — composite-only: translateX on a pseudo-element */
+@keyframes shimmer-sweep {
+  to { transform: translateX(100%); }
+}
+
+.skeleton {
+  display: block;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-sweep 1.5s ease-in-out infinite;
+}
+
+/* Page entrance */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Honour reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

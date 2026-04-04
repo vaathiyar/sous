@@ -7,8 +7,8 @@ export interface Recipe {
 
 export interface SessionInfo {
   token: string;
-  livekit_url: string;
-  room_name: string;
+  livekitUrl: string;
+  roomName: string;
 }
 
 export interface RecipeIngredient {
@@ -27,9 +27,9 @@ export interface PrepItem {
 
 export interface PreCookBriefing {
   summary: string;
-  active_time: string | null;
-  passive_time: string | null;
-  prep_items: PrepItem[];
+  activeTime: string | null;
+  passiveTime: string | null;
+  prepItems: PrepItem[];
 }
 
 export interface RecipeDetail {
@@ -37,7 +37,7 @@ export interface RecipeDetail {
   slug: string;
   title: string;
   cuisine: string | null;
-  source_url: string | null;
-  precook_briefing: PreCookBriefing | null;
+  sourceUrl: string | null;
+  precookBriefing: PreCookBriefing | null;
   ingredients: RecipeIngredient[] | null;
 }

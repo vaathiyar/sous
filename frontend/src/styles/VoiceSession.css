@@ -1,0 +1,167 @@
+/* ── Session page — dark ambient cooking mode ── */
+
+.session-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100svh;
+  background: var(--session-bg);
+  color: var(--session-ink);
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--session-border);
+  flex-shrink: 0;
+}
+
+.session-recipe {
+  font-size: 0.78rem;
+  color: var(--session-ink-2);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state-pill {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--session-surface);
+  color: var(--session-ink-2);
+  border: 1px solid var(--session-border);
+  transition: background 0.35s, color 0.35s, border-color 0.35s;
+  flex-shrink: 0;
+}
+
+.state-pill--speaking {
+  background: rgba(191, 58, 31, 0.12);
+  border-color: rgba(191, 58, 31, 0.25);
+  color: #d4694e;
+}
+
+.state-pill--listening {
+  background: rgba(74, 222, 128, 0.10);
+  border-color: rgba(74, 222, 128, 0.20);
+  color: var(--session-green);
+}
+
+.visualizer-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 24px;
+}
+
+.viz-container {
+  width: 100%;
+  max-width: 340px;
+  height: 120px;
+}
+
+.agent-hint {
+  font-size: 0.92rem;
+  color: var(--session-ink-2);
+  letter-spacing: 0.02em;
+}
+
+.session-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 24px max(48px, calc(28px + env(safe-area-inset-bottom, 0px)));
+  flex-shrink: 0;
+}
+
+.mic-btn {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mic-btn:focus-visible {
+  outline: 2px solid var(--session-green);
+  outline-offset: 4px;
+}
+
+.mic-btn--live {
+  background: var(--session-green);
+  color: #fff;
+  position: relative;
+}
+
+/* Pulse ring: composite-only (scale + opacity on pseudo-element) */
+.mic-btn--live::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--session-green);
+  animation: mic-pulse 2.5s ease-in-out infinite;
+  z-index: -1;
+}
+
+.mic-btn--muted {
+  background: var(--session-surface);
+  color: var(--session-ink-2);
+  border: 2px solid var(--session-border);
+}
+
+.mic-btn:active { transform: scale(0.91); }
+
+@keyframes mic-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.4; }
+  50%       { transform: scale(1.5); opacity: 0;   }
+}
+
+.mic-hint {
+  font-size: 0.78rem;
+  color: var(--session-ink-2);
+}
+
+.end-btn {
+  background: none;
+  border: 1px solid var(--session-border);
+  color: var(--session-ink-2);
+  padding: 10px 28px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  transition: border-color 0.2s, color 0.2s;
+  margin-top: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.end-btn:hover {
+  border-color: var(--session-red);
+  color: var(--session-red);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 640px) {
+  .session-header { padding: 16px 18px; }
+  .session-recipe { max-width: 130px; }
+  .visualizer-section { padding: 20px 18px; }
+  .viz-container { height: 96px; }
+  .session-controls { padding: 20px 18px max(40px, calc(20px + env(safe-area-inset-bottom, 0px))); }
+  .mic-btn { width: 88px; height: 88px; }
+}

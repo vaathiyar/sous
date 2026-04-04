@@ -1,46 +1,18 @@
-import { useState, useEffect } from "react";
-import type { RecipeDetail } from "./types";
+import { useState, useEffect } from 'react';
+import '@/styles/RecipeDetailPage.css';
+import { BackIcon, CheckIcon, ClockIcon } from '@/components/icons';
+import { useIngredientChecklist } from '@/hooks/useIngredientChecklist';
+import { getRecipeDetail } from '@/api/recipes';
+import { getYouTubeId } from '@/utils/youtube';
+import type { RecipeDetail } from '@/types';
 
-function getYouTubeId(url: string): string | null {
-  const patterns = [/[?&]v=([^&\s]+)/, /youtu\.be\/([^?&\s]+)/, /embed\/([^?&\s]+)/];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
-
-function CheckIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l3.5 2" />
-    </svg>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M19 12H5M12 5l-7 7 7 7" />
-    </svg>
-  );
-}
-
-interface Props {
+interface RecipeDetailPageProps {
   recipeId: string;
   recipeTitle: string;
   onBack: () => void;
   onStartCooking: () => void;
   startLoading: boolean;
+  startError: string | null;
 }
 
 export default function RecipeDetailPage({
@@ -49,38 +21,26 @@ export default function RecipeDetailPage({
   onBack,
   onStartCooking,
   startLoading,
-}: Props) {
+  startError,
+}: RecipeDetailPageProps) {
   const [data, setData] = useState<RecipeDetail | null>(null);
   const [fetchError, setFetchError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const ingredients = data?.ingredients ?? [];
+  const { checked, toggle, allEssentialChecked, progressPct, checkedCount, reset } =
+    useIngredientChecklist(ingredients);
 
   useEffect(() => {
     setLoading(true);
     setFetchError(false);
-    setChecked(new Set());
-    fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/voice/recipes/${recipeId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("not found");
-        return r.json();
-      })
+    reset();
+    getRecipeDetail(recipeId)
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => { setFetchError(true); setLoading(false); });
   }, [recipeId]);
 
-  const toggle = (name: string) =>
-    setChecked((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-
-  const ingredients = data?.ingredients ?? [];
-  const essentialCount = ingredients.filter((i) => !i.optional).length;
-  const checkedCount = checked.size;
-  const allEssentialChecked = essentialCount > 0 && ingredients.filter((i) => !i.optional && checked.has(i.name)).length === essentialCount;
-  const progressPct = ingredients.length > 0 ? (checkedCount / ingredients.length) * 100 : 0;
-  const youtubeId = data?.source_url ? getYouTubeId(data.source_url) : null;
+  const youtubeId = data?.sourceUrl ? getYouTubeId(data.sourceUrl) : null;
 
   return (
     <div className="detail-page">
@@ -97,16 +57,16 @@ export default function RecipeDetailPage({
           onClick={onStartCooking}
           disabled={startLoading}
         >
-          {startLoading ? "Starting…" : "Start Cooking"}
+          {startLoading ? 'Starting…' : 'Start Cooking'}
         </button>
       </header>
 
       {/* ── Body ─────────────────────────────── */}
       {loading ? (
         <div className="detail-body">
-          <div className="skeleton" style={{ height: 40, width: "60%", marginBottom: 10 }} />
-          <div className="skeleton" style={{ height: 18, width: "22%", marginBottom: 40 }} />
-          <div className="skeleton" style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, marginBottom: 52 }} />
+          <div className="skeleton" style={{ height: 40, width: '60%', marginBottom: 10 }} />
+          <div className="skeleton" style={{ height: 18, width: '22%', marginBottom: 40 }} />
+          <div className="skeleton" style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12, marginBottom: 52 }} />
           {[...Array(5)].map((_, i) => (
             <div key={i} className="skeleton" style={{ height: 50, marginBottom: 10, borderRadius: 6 }} />
           ))}
@@ -148,7 +108,7 @@ export default function RecipeDetailPage({
                 <h2 className="section-title" id="ing-heading">Ingredients</h2>
                 <span className="section-tally">
                   {allEssentialChecked
-                    ? "All ready"
+                    ? 'All ready'
                     : `${checkedCount} of ${ingredients.length}`}
                 </span>
               </div>
@@ -163,12 +123,12 @@ export default function RecipeDetailPage({
                   return (
                     <li
                       key={ing.name}
-                      className={`ing-row${isChecked ? " ing-checked" : ""}`}
+                      className={`ing-row${isChecked ? ' ing-checked' : ''}`}
                       onClick={() => toggle(ing.name)}
                       role="checkbox"
                       aria-checked={isChecked}
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === " " && (e.preventDefault(), toggle(ing.name))}
+                      onKeyDown={(e) => e.key === ' ' && (e.preventDefault(), toggle(ing.name))}
                     >
                       <div className="ing-box" aria-hidden="true">
                         {isChecked && <CheckIcon />}
@@ -198,23 +158,22 @@ export default function RecipeDetailPage({
           )}
 
           {/* ── Mise en Place ────────────────── */}
-          {data.precook_briefing && (
+          {data.precookBriefing && (
             <section className="detail-section" aria-labelledby="mep-heading">
               <div className="section-head">
                 <h2 className="section-title" id="mep-heading">Mise en Place</h2>
               </div>
 
-              {/* Summary quote */}
               <blockquote className="briefing-quote">
-                <p className="briefing-text">{data.precook_briefing.summary}</p>
+                <p className="briefing-text">{data.precookBriefing.summary}</p>
               </blockquote>
 
-              {data.precook_briefing.prep_items.length > 0 && (
+              {data.precookBriefing.prepItems.length > 0 && (
                 <ol className="prep-list" role="list">
-                  {data.precook_briefing.prep_items.map((item, i) => (
-                    <li key={i} className="prep-item">
+                  {data.precookBriefing.prepItems.map((item, i) => (
+                    <li key={`${item.task}-${i}`} className="prep-item">
                       <span className="prep-num" aria-hidden="true">
-                        {String(i + 1).padStart(2, "0")}
+                        {String(i + 1).padStart(2, '0')}
                       </span>
                       <div className="prep-body">
                         <p className="prep-task">{item.task}</p>
@@ -249,13 +208,14 @@ export default function RecipeDetailPage({
               onClick={onStartCooking}
               disabled={startLoading}
             >
-              {startLoading ? "Starting…" : "Begin Cooking Session"}
+              {startLoading ? 'Starting…' : 'Begin Cooking Session'}
               {!startLoading && (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               )}
             </button>
+            {startError && <p className="session-error" role="alert">{startError}</p>}
           </div>
 
         </div>
