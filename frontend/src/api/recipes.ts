@@ -1,5 +1,5 @@
 import { API_BASE } from '@/config';
-import type { Recipe, RecipeDetail } from '@/types';
+import type { PreCookBriefing, Recipe, RecipeDetail } from '@/types';
 
 export async function getRecipes(): Promise<Recipe[]> {
   const res = await fetch(`${API_BASE}/api/recipes`);
@@ -14,10 +14,10 @@ function transformRecipeDetail(raw: Record<string, unknown>): RecipeDetail {
     sourceUrl: raw.source_url as string | null,
     precookBriefing: briefing
       ? {
-          ...briefing as unknown as RecipeDetail['precookBriefing'],
+          summary: briefing.summary as string,
           activeTime: briefing.active_time as string | null,
           passiveTime: briefing.passive_time as string | null,
-          prepItems: briefing.prep_items as RecipeDetail['precookBriefing']['prepItems'],
+          prepItems: briefing.prep_items as PreCookBriefing['prepItems'],
         }
       : null,
   };
