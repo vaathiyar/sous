@@ -1,0 +1,83 @@
+/* ── Cook loading / error screens ──────────── */
+/* These use the dark session theme to feel continuous with VoiceSession */
+
+.cook-screen {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--session-bg);
+  color: var(--session-ink);
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.cook-wordmark {
+  color: var(--fire) !important;
+  margin-bottom: 8px;
+}
+
+/* ── Loading state ──────────────────────────── */
+.cook-loading-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cook-loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fire);
+  animation: cook-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.cook-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.cook-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes cook-dot-pulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); }
+  40%           { opacity: 1;   transform: scale(1); }
+}
+
+.cook-loading-label {
+  font-size: 0.85rem;
+  color: var(--session-ink-2);
+  letter-spacing: 0.04em;
+}
+
+/* ── Error state ────────────────────────────── */
+.cook-error-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--session-ink);
+  letter-spacing: -0.01em;
+}
+
+.cook-error-body {
+  font-size: 0.9rem;
+  color: var(--session-ink-2);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.cook-error-btn {
+  margin-top: 8px;
+  padding: 10px 22px;
+  background: transparent;
+  border: 1px solid var(--session-border);
+  border-radius: var(--r);
+  color: var(--session-ink-2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.cook-error-btn:hover {
+  border-color: var(--session-ink-2);
+  color: var(--session-ink);
+}

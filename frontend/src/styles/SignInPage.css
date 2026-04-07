@@ -1,0 +1,78 @@
+/* ── Sign-in page ───────────────────────────── */
+
+.signin-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  gap: 32px;
+  background: var(--bg);
+}
+
+.signin-wordmark {
+  text-decoration: none;
+  font-size: 1.6rem;
+}
+
+.signin-form-wrap {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Clerk component overrides ──────────────── */
+/* These target Clerk's injected elements via the element keys we pass */
+
+.clerk-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 2px 24px rgba(28, 26, 22, 0.06) !important;
+}
+
+.clerk-header-title {
+  font-family: var(--font-display) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.clerk-header-subtitle {
+  color: var(--ink-3) !important;
+}
+
+.clerk-btn-primary {
+  background: var(--fire) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  transition: background 0.15s !important;
+}
+
+.clerk-btn-primary:hover {
+  background: var(--fire-dk) !important;
+}
+
+.clerk-social-btn {
+  border-color: var(--border) !important;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  transition: border-color 0.15s, background 0.15s !important;
+}
+
+.clerk-social-btn:hover {
+  border-color: var(--border-2) !important;
+  background: var(--surface) !important;
+}
+
+.clerk-footer-link {
+  color: var(--fire) !important;
+}
+
+.clerk-divider-line {
+  background: var(--border) !important;
+}
+
+.clerk-divider-text {
+  color: var(--ink-3) !important;
+}

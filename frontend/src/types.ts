@@ -41,3 +41,8 @@ export interface RecipeDetail {
   precookBriefing: PreCookBriefing | null;
   ingredients: RecipeIngredient[] | null;
 }
+
+export interface UserMe {
+  sessions_used: number;
+  sessions_limit: number;
+}

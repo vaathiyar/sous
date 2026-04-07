@@ -1,10 +1,13 @@
 import { API_BASE } from '@/config';
 import type { SessionInfo } from '@/types';
 
-export async function createSession(recipeId: string): Promise<SessionInfo> {
+export async function createSession(recipeId: string, authToken: string): Promise<SessionInfo> {
   const res = await fetch(`${API_BASE}/api/voice/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
     body: JSON.stringify({ recipe_id: recipeId }),
   });
   if (!res.ok) throw new Error(await res.text());

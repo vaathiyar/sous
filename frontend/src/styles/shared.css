@@ -122,6 +122,27 @@ ul, ol { list-style: none; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── SessionsRemaining ──────────────────────── */
+
+.sessions-remaining {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.sessions-remaining--low {
+  color: var(--fire);
+  border-color: var(--fire-mid);
+  background: var(--fire-dim);
+}
+
+/* ── Honour reduced-motion preference ──────── */
 /* Honour reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

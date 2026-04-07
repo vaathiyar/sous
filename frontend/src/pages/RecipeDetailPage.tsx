@@ -1,28 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import '@/styles/RecipeDetailPage.css';
 import { BackIcon, CheckIcon, ClockIcon } from '@/components/icons';
 import { useIngredientChecklist } from '@/hooks/useIngredientChecklist';
-import { getRecipeDetail } from '@/api/recipes';
+import { getRecipeBySlug } from '@/api/recipes';
 import { getYouTubeId } from '@/utils/youtube';
 import type { RecipeDetail } from '@/types';
 
-interface RecipeDetailPageProps {
-  recipeId: string;
-  recipeTitle: string;
-  onBack: () => void;
-  onStartCooking: () => void;
-  startLoading: boolean;
-  startError: string | null;
-}
+export default function RecipeDetailPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
 
-export default function RecipeDetailPage({
-  recipeId,
-  recipeTitle,
-  onBack,
-  onStartCooking,
-  startLoading,
-  startError,
-}: RecipeDetailPageProps) {
   const [data, setData] = useState<RecipeDetail | null>(null);
   const [fetchError, setFetchError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,32 +20,32 @@ export default function RecipeDetailPage({
     useIngredientChecklist(ingredients);
 
   useEffect(() => {
+    if (!slug) return;
     setLoading(true);
     setFetchError(false);
     reset();
-    getRecipeDetail(recipeId)
+    getRecipeBySlug(slug)
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => { setFetchError(true); setLoading(false); });
-  }, [recipeId]);
+  }, [slug]);
 
   const youtubeId = data?.sourceUrl ? getYouTubeId(data.sourceUrl) : null;
+
+  const handleStartCooking = () => navigate(`/recipes/${slug}/cook`);
+  const handleBack = () => navigate('/recipes');
 
   return (
     <div className="detail-page">
 
       {/* ── Sticky header ────────────────────── */}
       <header className="detail-header">
-        <button className="detail-back-btn" onClick={onBack} aria-label="Back to recipes">
+        <button className="detail-back-btn" onClick={handleBack} aria-label="Back to recipes">
           <BackIcon />
         </button>
         <span className="wordmark">Suvai</span>
-        <span className="detail-header-title">{recipeTitle}</span>
-        <button
-          className="detail-start-btn"
-          onClick={onStartCooking}
-          disabled={startLoading}
-        >
-          {startLoading ? 'Starting…' : 'Start Cooking'}
+        <span className="detail-header-title">{data?.title ?? slug}</span>
+        <button className="detail-start-btn" onClick={handleStartCooking}>
+          Start Cooking
         </button>
       </header>
 
@@ -74,7 +62,7 @@ export default function RecipeDetailPage({
       ) : fetchError || !data ? (
         <div className="detail-body detail-error">
           <p>Could not load recipe.</p>
-          <button onClick={onBack} className="detail-error-back">← Back to list</button>
+          <button onClick={handleBack} className="detail-error-back">← Back to list</button>
         </div>
       ) : (
         <div className="detail-body">
@@ -203,19 +191,12 @@ export default function RecipeDetailPage({
           {/* ── Bottom CTA ───────────────────── */}
           <div className="detail-cta-block">
             <p className="detail-cta-caption">Ready to begin?</p>
-            <button
-              className="detail-cta-btn"
-              onClick={onStartCooking}
-              disabled={startLoading}
-            >
-              {startLoading ? 'Starting…' : 'Begin Cooking Session'}
-              {!startLoading && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              )}
+            <button className="detail-cta-btn" onClick={handleStartCooking}>
+              Begin Cooking Session
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </button>
-            {startError && <p className="session-error" role="alert">{startError}</p>}
           </div>
 
         </div>

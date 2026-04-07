@@ -1,18 +1,24 @@
+import { useNavigate } from 'react-router-dom';
+import { UserButton } from '@clerk/react';
 import '@/styles/RecipeListPage.css';
-import type { Recipe } from '@/types';
+import { useRecipes } from '@/hooks/useRecipes';
+import { SessionsRemaining } from '@/components/SessionsRemaining';
 
-interface RecipeListPageProps {
-  recipes: Recipe[];
-  onSelect: (recipe: Recipe) => void;
-}
+export default function RecipeListPage() {
+  const navigate = useNavigate();
+  const { recipes } = useRecipes();
 
-export default function RecipeListPage({ recipes, onSelect }: RecipeListPageProps) {
   return (
     <div className="list-page">
       <header className="list-header">
         <span className="wordmark">Suvai</span>
         <span className="list-header-divider" aria-hidden="true">·</span>
         <span className="list-header-sub">Your AI sous chef</span>
+
+        <div className="list-header-user">
+          <SessionsRemaining />
+          <UserButton />
+        </div>
       </header>
 
       <main className="list-main">
@@ -45,7 +51,7 @@ export default function RecipeListPage({ recipes, onSelect }: RecipeListPageProp
               >
                 <button
                   className="menu-item-btn"
-                  onClick={() => onSelect(recipe)}
+                  onClick={() => navigate(`/recipes/${recipe.slug}`)}
                 >
                   <span className="menu-item-name">{recipe.title}</span>
                   <span className="menu-item-rule" aria-hidden="true" />

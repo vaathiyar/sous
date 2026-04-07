@@ -30,6 +30,13 @@
   letter-spacing: 0.02em;
 }
 
+.list-header-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 /* Main content */
 .list-main {
   flex: 1;
