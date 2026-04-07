@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/react';
 import '@/styles/RecipeDetailPage.css';
 import { BackIcon, CheckIcon, ClockIcon } from '@/components/icons';
 import { useIngredientChecklist } from '@/hooks/useIngredientChecklist';
@@ -11,9 +12,11 @@ export default function RecipeDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const [data, setData] = useState<RecipeDetail | null>(null);
   const [fetchError, setFetchError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [ingOpen, setIngOpen] = useState(false);
 
   const ingredients = data?.ingredients ?? [];
   const { checked, toggle, allEssentialChecked, progressPct, checkedCount, reset } =
@@ -23,6 +26,7 @@ export default function RecipeDetailPage() {
     if (!slug) return;
     setLoading(true);
     setFetchError(false);
+    setIngOpen(false);
     reset();
     getRecipeBySlug(slug)
       .then((d) => { setData(d); setLoading(false); })
@@ -31,7 +35,13 @@ export default function RecipeDetailPage() {
 
   const youtubeId = data?.sourceUrl ? getYouTubeId(data.sourceUrl) : null;
 
-  const handleStartCooking = () => navigate(`/recipes/${slug}/cook`);
+  const handleStartCooking = () => {
+    if (isSignedIn) {
+      navigate(`/recipes/${slug}/cook`);
+    } else {
+      navigate(`/sign-in?redirect_url=/recipes/${slug}/cook`);
+    }
+  };
   const handleBack = () => navigate('/recipes');
 
   return (
@@ -44,9 +54,11 @@ export default function RecipeDetailPage() {
         </button>
         <span className="wordmark">Suvai</span>
         <span className="detail-header-title">{data?.title ?? slug}</span>
-        <button className="detail-start-btn" onClick={handleStartCooking}>
-          Start Cooking
-        </button>
+        {authLoaded && (
+          <button className="detail-start-btn detail-start-btn--ghost" onClick={handleStartCooking}>
+            {isSignedIn ? 'Begin Cooking' : 'Sign in'}
+          </button>
+        )}
       </header>
 
       {/* ── Body ─────────────────────────────── */}
@@ -92,55 +104,77 @@ export default function RecipeDetailPage() {
           {/* ── Ingredients ──────────────────── */}
           {ingredients.length > 0 && (
             <section className="detail-section" aria-labelledby="ing-heading">
-              <div className="section-head">
+              <div
+                className="section-head section-head--toggle"
+                onClick={() => setIngOpen(o => !o)}
+                role="button"
+                tabIndex={0}
+                aria-expanded={ingOpen}
+                onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && (e.preventDefault(), setIngOpen(o => !o))}
+              >
                 <h2 className="section-title" id="ing-heading">Ingredients</h2>
-                <span className="section-tally">
-                  {allEssentialChecked
-                    ? 'All ready'
-                    : `${checkedCount} of ${ingredients.length}`}
-                </span>
-              </div>
-
-              <div className="progress-track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
-                <div className="progress-fill" style={{ transform: `scaleX(${progressPct / 100})` }} />
-              </div>
-
-              <ul className="ing-list" role="list">
-                {ingredients.map((ing) => {
-                  const isChecked = checked.has(ing.name);
-                  return (
-                    <li
-                      key={ing.name}
-                      className={`ing-row${isChecked ? ' ing-checked' : ''}`}
-                      onClick={() => toggle(ing.name)}
-                      role="checkbox"
-                      aria-checked={isChecked}
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === ' ' && (e.preventDefault(), toggle(ing.name))}
-                    >
-                      <div className="ing-box" aria-hidden="true">
-                        {isChecked && <CheckIcon />}
-                      </div>
-                      <div className="ing-info">
-                        <span className="ing-name">{ing.name}</span>
-                        {ing.notes && <span className="ing-note">{ing.notes}</span>}
-                      </div>
-                      <div className="ing-right">
-                        {ing.quantity && <span className="ing-qty">{ing.quantity}</span>}
-                        {ing.optional && <span className="ing-opt">optional</span>}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {allEssentialChecked && (
-                <p className="ing-ready" role="status">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
+                <div className="section-toggle-right">
+                  <span className="section-tally">
+                    {ingOpen
+                      ? (allEssentialChecked ? 'All ready' : `${checkedCount} of ${ingredients.length}`)
+                      : `${ingredients.length} ingredient${ingredients.length !== 1 ? 's' : ''}`}
+                  </span>
+                  <svg
+                    className={`section-chevron${ingOpen ? ' section-chevron--open' : ''}`}
+                    width="13" height="13" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
                   </svg>
-                  You have everything. Ready to cook.
-                </p>
+                </div>
+              </div>
+
+              {ingOpen && (
+                <div className="ing-collapse-body">
+                  <div className="progress-track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="progress-fill" style={{ transform: `scaleX(${progressPct / 100})` }} />
+                  </div>
+
+                  <ul className="ing-list" role="list">
+                    {ingredients.map((ing) => {
+                      const isChecked = checked.has(ing.name);
+                      return (
+                        <li
+                          key={ing.name}
+                          className={`ing-row${isChecked ? ' ing-checked' : ''}`}
+                          onClick={() => toggle(ing.name)}
+                          role="checkbox"
+                          aria-checked={isChecked}
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === ' ' && (e.preventDefault(), toggle(ing.name))}
+                        >
+                          <div className="ing-box" aria-hidden="true">
+                            {isChecked && <CheckIcon />}
+                          </div>
+                          <div className="ing-info">
+                            <span className="ing-name">{ing.name}</span>
+                            {ing.notes && <span className="ing-note">{ing.notes}</span>}
+                          </div>
+                          <div className="ing-right">
+                            {ing.quantity && <span className="ing-qty">{ing.quantity}</span>}
+                            {ing.optional && <span className="ing-opt">optional</span>}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {allEssentialChecked && (
+                    <p className="ing-ready" role="status">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      You have everything. Ready to cook.
+                    </p>
+                  )}
+                </div>
               )}
             </section>
           )}
@@ -190,13 +224,19 @@ export default function RecipeDetailPage() {
 
           {/* ── Bottom CTA ───────────────────── */}
           <div className="detail-cta-block">
-            <p className="detail-cta-caption">Ready to begin?</p>
-            <button className="detail-cta-btn" onClick={handleStartCooking}>
-              Begin Cooking Session
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
+            {authLoaded && (
+              <>
+                <p className="detail-cta-caption">
+                  {isSignedIn ? 'Ready to begin?' : 'Sign in to start cooking'}
+                </p>
+                <button className="detail-cta-btn" onClick={handleStartCooking}>
+                  {isSignedIn ? 'Begin Cooking Session' : 'Sign in to begin'}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
 
         </div>

@@ -33,15 +33,15 @@ export default function LandingPage() {
         <div className="landing-features">
           <div className="landing-feature">
             <span className="landing-feature-mark">01</span>
-            <span>Choose from curated recipes</span>
+            <span className="landing-feature-text">Choose from curated recipes</span>
           </div>
           <div className="landing-feature">
             <span className="landing-feature-mark">02</span>
-            <span>Start a voice cooking session</span>
+            <span className="landing-feature-text">Start a voice cooking session</span>
           </div>
           <div className="landing-feature">
             <span className="landing-feature-mark">03</span>
-            <span>Cook hands-free, ask anything</span>
+            <span className="landing-feature-text">Cook hands-free, ask anything</span>
           </div>
         </div>
 

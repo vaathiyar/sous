@@ -76,3 +76,23 @@
 .clerk-divider-text {
   color: var(--ink-3) !important;
 }
+
+.clerk-footer-hide {
+  display: none !important;
+}
+
+/* ── Sign-in context line ── */
+
+.signin-context {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-3);
+  text-align: center;
+  margin-top: -8px;
+}
+
+.signin-context em {
+  color: var(--ink);
+  font-style: italic;
+}

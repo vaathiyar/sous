@@ -35,11 +35,8 @@ export default function RecipeListPage() {
 
         {recipes.length === 0 ? (
           <div className="list-empty">
-            <p className="list-empty-title">The kitchen is empty.</p>
-            <p className="list-empty-body">Ingest a YouTube video to get started.</p>
-            <code className="list-empty-code">
-              uv run python main.py ingest "&lt;youtube_url&gt;"
-            </code>
+            <p className="list-empty-title">No recipes yet.</p>
+            <p className="list-empty-body">Your kitchen is empty — check back soon.</p>
           </div>
         ) : (
           <ul className="menu-list" role="list">

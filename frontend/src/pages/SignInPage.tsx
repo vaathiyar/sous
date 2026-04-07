@@ -25,16 +25,31 @@ const clerkAppearance = {
     footerActionLink: 'clerk-footer-link',
     dividerLine: 'clerk-divider-line',
     dividerText: 'clerk-divider-text',
+    footer: 'clerk-footer-hide',
   },
 };
+
+function slugToTitle(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export default function SignInPage() {
   const [params] = useSearchParams();
   const redirectUrl = params.get('redirect_url') ?? '/recipes';
 
+  // Parse recipe name from paths like /recipes/palak-paneer/cook
+  const recipeMatch = redirectUrl.match(/^\/recipes\/([^/]+)\/cook/);
+  const recipeTitle = recipeMatch ? slugToTitle(recipeMatch[1]) : null;
+
   return (
     <div className="signin-page">
       <Link to="/" className="signin-wordmark wordmark">Suvai</Link>
+
+      {recipeTitle && (
+        <p className="signin-context">
+          to cook <em>{recipeTitle}</em>
+        </p>
+      )}
 
       <div className="signin-form-wrap">
         <SignIn
