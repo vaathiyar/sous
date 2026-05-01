@@ -36,7 +36,7 @@ export default function RecipeListPage() {
         {recipes.length === 0 ? (
           <div className="list-empty">
             <p className="list-empty-title">No recipes yet.</p>
-            <p className="list-empty-body">Your kitchen is empty — check back soon.</p>
+            <p className="list-empty-body">Your kitchen is empty - check back soon.</p>
           </div>
         ) : (
           <ul className="menu-list" role="list">
@@ -52,7 +52,7 @@ export default function RecipeListPage() {
                 >
                   <span className="menu-item-name">{recipe.title}</span>
                   <span className="menu-item-rule" aria-hidden="true" />
-                  <span className="menu-item-cuisine">{recipe.cuisine ?? '—'}</span>
+                  <span className="menu-item-cuisine">{recipe.cuisine ?? '-'}</span>
                 </button>
               </li>
             ))}
@@ -61,7 +61,7 @@ export default function RecipeListPage() {
       </main>
 
       <footer className="list-footer">
-        <span>Suvai — your hands-free kitchen companion</span>
+        <span>Suvai - your hands-free kitchen companion</span>
       </footer>
     </div>
   );
